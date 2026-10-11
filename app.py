@@ -75,7 +75,7 @@ def extract():
     text = text.strip()
     if not text:
         return jsonify({"error": "File mein text nahi mila (scanned PDF ho sakti hai) 😕"}), 400
-    limit = 8000
+    limit = 5000
     return jsonify({"text": text[:limit], "truncated": len(text) > limit})
 
 
@@ -103,10 +103,19 @@ def build_messages(history):
     return out, last_img is not None
 
 
+def trim(history, limit=6000):
+    """Purani baatein kaat deta hai taake Groq ki limit cross na ho."""
+    out, total = [], 0
+    for m in reversed(history):
+        total += len(m.get("content", "") or "")
+        if total > limit and out:
+            break
+        out.append(m)
+    return list(reversed(out))
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.json
-    history = data["messages"][-20:]  # sirf aakhri 20 messages
+    history = trim(data["messages"][-12:])
     mode = data.get("mode", "assistant")
     system_prompt = BASE_PROMPT + MODES.get(mode, MODES["assistant"])
 
