@@ -1,0 +1,6 @@
+flask
+groq
+gunicorn
+python-dotenv
+pypdf
+python-docx
